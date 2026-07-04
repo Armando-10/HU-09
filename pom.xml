@@ -16,5 +16,9 @@
     <modules>
         <module>auth</module>
     </modules>
+    <modules>
+        <module>auth</module>
+        <module>eureka-server</module>
+    </modules>
 
 </project>
