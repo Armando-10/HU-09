@@ -5,6 +5,9 @@ import com.tutormatch.ms_usuarios.entity.Rol;
 import com.tutormatch.ms_usuarios.entity.Usuario;
 import com.tutormatch.ms_usuarios.repository.RolRepository;
 import com.tutormatch.ms_usuarios.repository.UsuarioRepository;
+
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class UsuarioService {
         nuevoUsuario.setNombre(dto.getNombre());
         nuevoUsuario.setEmail(dto.getEmail());
         nuevoUsuario.setPassword(passwordEncoder.encode(dto.getPassword()));
+        nuevoUsuario.setRoles(new java.util.HashSet<>());
 
         Rol rolAlumno = rolRepository.findByNombre("ROLE_ALUMNO")
                 .orElseThrow(() -> new RuntimeException("Error crítico: El rol ALUMNO no existe en la base de datos"));
@@ -40,5 +44,11 @@ public class UsuarioService {
         nuevoUsuario.getRoles().add(rolAlumno);
 
         return usuarioRepository.save(nuevoUsuario);
+    }
+
+    // Obtener usuarios por ID
+    public Usuario obtenerPorId(UUID id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
     }
 }
