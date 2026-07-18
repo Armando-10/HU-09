@@ -56,14 +56,14 @@ public class UsuarioController {
 
     // HU-06: el Administrador consulta todas las solicitudes de tutor pendientes de revisión
     @GetMapping("/solicitudes-pendientes")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SolicitudPendienteDto>> obtenerSolicitudesPendientes() {
         return ResponseEntity.ok(service.obtenerSolicitudesPendientes());
     }
 
     // HU-07: el Administrador aprueba una solicitud -> el usuario pasa a ser TUTOR
     @PatchMapping("/{id}/aprobar")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> aprobarSolicitud(@PathVariable UUID id) {
         try {
             service.aprobarSolicitud(id);
@@ -75,7 +75,7 @@ public class UsuarioController {
 
     // HU-07: el Administrador rechaza una solicitud -> el usuario se mantiene como ALUMNO
     @PatchMapping("/{id}/rechazar")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> rechazarSolicitud(@PathVariable UUID id) {
         try {
             service.rechazarSolicitud(id);

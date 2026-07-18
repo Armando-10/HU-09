@@ -1,21 +1,31 @@
 package com.tutormatch.ms_core.controller;
 
-import com.tutormatch.ms_core.dto.CatalogoSesionDto;
-import com.tutormatch.ms_core.dto.SesionRequestDto;
-import com.tutormatch.ms_core.dto.SesionResponseDto;
-import com.tutormatch.ms_core.dto.SesionUpdateDto;
-import com.tutormatch.ms_core.service.SesionService;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import com.tutormatch.ms_core.dto.CatalogoSesionDto;
+import com.tutormatch.ms_core.dto.SesionRequestDto;
+import com.tutormatch.ms_core.dto.SesionResponseDto;
+import com.tutormatch.ms_core.dto.SesionUpdateDto;
+import com.tutormatch.ms_core.service.SesionService;
 
 @RestController
 @RequestMapping("/api/core/sesiones-tutorias")
@@ -59,7 +69,7 @@ public class SesionController {
      * tutorId y tutorNombre se extraen del JWT (evita suplantación).
      */
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_TUTOR')")
+    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<SesionResponseDto> publicarSesion(
             @RequestBody SesionRequestDto dto,
             @AuthenticationPrincipal Jwt jwt) {
@@ -76,7 +86,7 @@ public class SesionController {
     // -----------------------------------------------------------------------
 
     @GetMapping("/mi-agenda")
-    @PreAuthorize("hasRole('ROLE_TUTOR')")
+    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<List<SesionResponseDto>> obtenerMiAgenda(
             @AuthenticationPrincipal Jwt jwt) {
 
@@ -89,7 +99,7 @@ public class SesionController {
     // -----------------------------------------------------------------------
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_TUTOR')")
+    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<SesionResponseDto> actualizarSesion(
             @PathVariable UUID id,
             @RequestBody SesionUpdateDto dto,
@@ -104,7 +114,7 @@ public class SesionController {
     // -----------------------------------------------------------------------
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_TUTOR')")
+    @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<Void> cancelarSesion(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {

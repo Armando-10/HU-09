@@ -1,18 +1,26 @@
 package com.tutormatch.ms_core.controller;
 
-import com.tutormatch.ms_core.dto.AgendaAlumnoDto;
-import com.tutormatch.ms_core.dto.InscripcionRequestDto;
-import com.tutormatch.ms_core.entity.Inscripcion;
-import com.tutormatch.ms_core.service.InscripcionService;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.UUID;
+import com.tutormatch.ms_core.dto.AgendaAlumnoDto;
+import com.tutormatch.ms_core.dto.InscripcionRequestDto;
+import com.tutormatch.ms_core.entity.Inscripcion;
+import com.tutormatch.ms_core.service.InscripcionService;
 
 @RestController
 @RequestMapping("/api/core/inscripciones")
@@ -34,7 +42,7 @@ public class InscripcionController {
      * El alumnoId se extrae del JWT, nunca del body.
      */
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ALUMNO')")
+    @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<Inscripcion> inscribirse(
             @RequestBody InscripcionRequestDto dto,
             @AuthenticationPrincipal Jwt jwt) {
@@ -54,7 +62,7 @@ public class InscripcionController {
      * Este endpoint SÍ revela el campo "lugar" (a diferencia del catálogo).
      */
     @GetMapping("/mi-agenda")
-    @PreAuthorize("hasRole('ROLE_ALUMNO')")
+    @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<List<AgendaAlumnoDto>> getMiAgendaAlumno(
             @AuthenticationPrincipal Jwt jwt) {
 
@@ -72,7 +80,7 @@ public class InscripcionController {
      * Incrementa el cupo de la sesión en 1.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ALUMNO')")
+    @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<Void> cancelarInscripcion(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
