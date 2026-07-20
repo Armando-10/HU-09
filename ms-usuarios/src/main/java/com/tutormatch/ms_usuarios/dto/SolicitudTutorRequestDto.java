@@ -1,8 +1,8 @@
 package com.tutormatch.ms_usuarios.dto;
 
-import lombok.Data;
-
-@Data
 public class SolicitudTutorRequestDto {
     private String justificacion;
+
+    public String getJustificacion() { return justificacion; }
+    public void setJustificacion(String justificacion) { this.justificacion = justificacion; }
 }
