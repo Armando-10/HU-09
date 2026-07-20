@@ -8,4 +8,5 @@ import lombok.Data;
 public class EstadisticasTutorDto {
     private long sesionesImpartidas;
     private long alumnosAtendidos;
+    private Double calificacion;
 }

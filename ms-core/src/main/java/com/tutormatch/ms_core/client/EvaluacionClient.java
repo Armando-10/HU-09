@@ -18,4 +18,7 @@ public interface EvaluacionClient {
 
     @GetMapping("/api/evaluaciones/alumno/{alumnoId}/evaluadas")
     List<UUID> obtenerSesionesEvaluadas(@PathVariable("alumnoId") UUID alumnoId);
+
+    @GetMapping("/api/evaluaciones/promedio/{tutorId}")
+    Double obtenerPromedioTutor(@PathVariable("tutorId") UUID tutorId);
 }

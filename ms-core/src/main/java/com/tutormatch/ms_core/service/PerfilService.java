@@ -1,5 +1,6 @@
 package com.tutormatch.ms_core.service;
 
+import com.tutormatch.ms_core.client.EvaluacionClient;
 import com.tutormatch.ms_core.dto.EstadisticasAlumnoDto;
 import com.tutormatch.ms_core.dto.EstadisticasTutorDto;
 import com.tutormatch.ms_core.dto.SesionHistorialDto;
@@ -19,84 +20,89 @@ import java.util.stream.Collectors;
 @Service
 public class PerfilService {
 
-    private static final String SESION_ACTIVA = "ACTIVA";
-    private static final String INSCRIPCION_CONFIRMADA = "CONFIRMADA";
+        private static final String SESION_ACTIVA = "ACTIVA";
+        private static final String INSCRIPCION_CONFIRMADA = "CONFIRMADA";
 
-    private final SesionRepository sesionRepository;
-    private final InscripcionRepository inscripcionRepository;
+        private final SesionRepository sesionRepository;
+        private final InscripcionRepository inscripcionRepository;
+        private final EvaluacionClient evaluacionClient;
 
-    public PerfilService(SesionRepository sesionRepository, InscripcionRepository inscripcionRepository) {
-        this.sesionRepository = sesionRepository;
-        this.inscripcionRepository = inscripcionRepository;
-    }
+        public PerfilService(SesionRepository sesionRepository, InscripcionRepository inscripcionRepository,
+                        EvaluacionClient evaluacionClient) {
+                this.sesionRepository = sesionRepository;
+                this.inscripcionRepository = inscripcionRepository;
+                this.evaluacionClient = evaluacionClient;
+        }
 
-    // =========================================================================
-    // TUTOR: historial de sesiones pasadas
-    // =========================================================================
-    @Transactional(readOnly = true)
-    public List<SesionHistorialDto> obtenerHistorialTutor(UUID tutorId) {
-        LocalDateTime ahora = LocalDateTime.now();
+        // =========================================================================
+        // TUTOR: historial de sesiones pasadas
+        // =========================================================================
+        @Transactional(readOnly = true)
+        public List<SesionHistorialDto> obtenerHistorialTutor(UUID tutorId) {
+                LocalDateTime ahora = LocalDateTime.now();
 
-        List<Sesion> pasadas = sesionRepository
-                .findByTutorIdAndFechaHoraBeforeOrderByFechaHoraDesc(tutorId, ahora);
+                List<Sesion> pasadas = sesionRepository
+                                .findByTutorIdAndFechaHoraBeforeOrderByFechaHoraDesc(tutorId, ahora);
 
-        return pasadas.stream().map(sesion -> {
-            long inscritos = inscripcionRepository
-                    .countBySesionIdAndEstado(sesion.getId(), INSCRIPCION_CONFIRMADA);
+                return pasadas.stream().map(sesion -> {
+                        long inscritos = inscripcionRepository
+                                        .countBySesionIdAndEstado(sesion.getId(), INSCRIPCION_CONFIRMADA);
 
-            boolean ventanaAbierta = ahora.isBefore(sesion.getFechaHora().plusDays(1));
+                        boolean ventanaAbierta = ahora.isBefore(sesion.getFechaHora().plusDays(1));
 
-            return new SesionHistorialDto(
-                    sesion.getId(),
-                    sesion.getTitulo(),
-                    sesion.getDescripcion(),
-                    sesion.getLugar(),
-                    sesion.getFechaHora(),
-                    sesion.getCupoMaximo(),
-                    (int) inscritos,
-                    sesion.getEstado(),
-                    ventanaAbierta);
-        }).collect(Collectors.toList());
-    }
+                        return new SesionHistorialDto(
+                                        sesion.getId(),
+                                        sesion.getTitulo(),
+                                        sesion.getDescripcion(),
+                                        sesion.getLugar(),
+                                        sesion.getFechaHora(),
+                                        sesion.getCupoMaximo(),
+                                        (int) inscritos,
+                                        sesion.getEstado(),
+                                        ventanaAbierta);
+                }).collect(Collectors.toList());
+        }
 
-    // =========================================================================
-    // TUTOR: estadísticas (sesiones impartidas + alumnos atendidos)
-    // =========================================================================
-    @Transactional(readOnly = true)
-    public EstadisticasTutorDto obtenerEstadisticasTutor(UUID tutorId) {
-        LocalDateTime ahora = LocalDateTime.now();
+        // =========================================================================
+        // TUTOR: estadísticas (sesiones impartidas + alumnos atendidos)
+        // =========================================================================
+        @Transactional(readOnly = true)
+        public EstadisticasTutorDto obtenerEstadisticasTutor(UUID tutorId) {
+                LocalDateTime ahora = LocalDateTime.now();
 
-        List<Sesion> pasadas = sesionRepository
-                .findByTutorIdAndFechaHoraBeforeOrderByFechaHoraDesc(tutorId, ahora);
+                List<Sesion> pasadas = sesionRepository
+                                .findByTutorIdAndFechaHoraBeforeOrderByFechaHoraDesc(tutorId, ahora);
 
-        List<Sesion> impartidas = pasadas.stream()
-                .filter(s -> SESION_ACTIVA.equals(s.getEstado()))
-                .collect(Collectors.toList());
+                List<Sesion> impartidas = pasadas.stream()
+                                .filter(s -> SESION_ACTIVA.equals(s.getEstado()))
+                                .collect(Collectors.toList());
 
-        Set<UUID> alumnosUnicos = impartidas.stream()
-                .flatMap(s -> inscripcionRepository.findBySesionId(s.getId()).stream())
-                .filter(i -> INSCRIPCION_CONFIRMADA.equals(i.getEstado()))
-                .map(Inscripcion::getAlumnoId)
-                .collect(Collectors.toSet());
+                Set<UUID> alumnosUnicos = impartidas.stream()
+                                .flatMap(s -> inscripcionRepository.findBySesionId(s.getId()).stream())
+                                .filter(i -> INSCRIPCION_CONFIRMADA.equals(i.getEstado()))
+                                .map(Inscripcion::getAlumnoId)
+                                .collect(Collectors.toSet());
 
-        return new EstadisticasTutorDto(impartidas.size(), alumnosUnicos.size());
-    }
+                Double promedio = evaluacionClient.obtenerPromedioTutor(tutorId);
 
-    // =========================================================================
-    // ALUMNO: estadísticas (tutorías recibidas)
-    // =========================================================================
-    @Transactional(readOnly = true)
-    public EstadisticasAlumnoDto obtenerEstadisticasAlumno(UUID alumnoId) {
-        LocalDateTime ahora = LocalDateTime.now();
+                return new EstadisticasTutorDto(impartidas.size(), alumnosUnicos.size(), promedio);
+        }
 
-        List<Inscripcion> confirmadas = inscripcionRepository
-                .findByAlumnoIdAndEstado(alumnoId, INSCRIPCION_CONFIRMADA);
+        // =========================================================================
+        // ALUMNO: estadísticas (tutorías recibidas)
+        // =========================================================================
+        @Transactional(readOnly = true)
+        public EstadisticasAlumnoDto obtenerEstadisticasAlumno(UUID alumnoId) {
+                LocalDateTime ahora = LocalDateTime.now();
 
-        long tutoriasRecibidas = confirmadas.stream()
-                .map(i -> sesionRepository.findById(i.getSesionId()).orElse(null))
-                .filter(s -> s != null && s.getFechaHora().isBefore(ahora))
-                .count();
+                List<Inscripcion> confirmadas = inscripcionRepository
+                                .findByAlumnoIdAndEstado(alumnoId, INSCRIPCION_CONFIRMADA);
 
-        return new EstadisticasAlumnoDto(tutoriasRecibidas);
-    }
+                long tutoriasRecibidas = confirmadas.stream()
+                                .map(i -> sesionRepository.findById(i.getSesionId()).orElse(null))
+                                .filter(s -> s != null && s.getFechaHora().isBefore(ahora))
+                                .count();
+
+                return new EstadisticasAlumnoDto(tutoriasRecibidas);
+        }
 }
